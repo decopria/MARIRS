@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Fitness Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;S
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+            background: url('https://wallpapercave.com/wp/wp2776921.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+        nav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .section {
+            background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white */
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        input[type="number"], input[type="text"], input[type="email"], select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #historyChart {
+            width: 100%;
+            height: 400px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: #fff;
+                margin: 0;
+                padding: 0;
+            }
+            nav, .section, button {
+                display: none;
+            }
+            .print-section {
+                display: block;
+            }
+            .print-header, .print-footer {
+                text-align: center;
+                font-weight: bold;
+            }
+            .print-chart {
+                display: block;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#history">Customer Results</a>
+        <a href="#goals">Fitness Goals</a>
+    </nav>
+
+    <!-- Home Section -->
+    <div id="home" class="section">
+        <h2>Welcome to the Unified Fitness Calculator</h2>
+        <p>This tool allows you to calculate various fitness metrics such as BMI, Ideal Weight, Daily Calories, BMR, and Protein requirements. You can also track your results over time and visualize them in a graphical representation.</p>
+    </div>
+
+    <!-- Calculator Section -->
+    <div id="calculator" class="section">
+        <h2>MARIRS Fitness Calculator</h2>
+
+        <!-- Customer Information -->
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Your Name"><br><br>
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" placeholder="Your Address"><br><br>
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" placeholder="Your Phone Number"><br><br>
+
+        <!-- Common Inputs -->
+        <div id="commonInputs">
+            <label for="height">Height (cm):</label>
+            <input type="number" id="height" placeholder="Height in cm"><br><br>
+            <label for="weight">Weight (kg):</label>
+            <input type="number" id="weight" placeholder="Weight in kg"><br><br>
+            <label for="age">Age:</label>
+            <input type="number" id="age" placeholder="Age in years"><br><br>
+            <label for="activityLevel">Activity Level:</label>
+            <select id="activityLevel">
+                <option value="1.2">Sedentary (little or no exercise)</option>
+                <option value="1.375">Lightly active (light exercise/sports 1-3 days/week)</option>
+                <option value="1.55">Moderately active (moderate exercise/sports 3-5 days/week)</option>
+                <option value="1.725">Very active (hard exercise/sports 6-7 days a week)</option>
+                <option value="1.9">Extra active (very hard exercise/physical job)</option>
+            </select><br><br>
+            <label for="gender">Gender:</label>
+            <select id="gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select><br><br>
+        </div>
+
+        <button onclick="performCalculations()">Calculate</button>
+        <button onclick="printResults()">Print Results</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <!-- Fitness Goals Section -->
+    <div id="goals" class="section">
+        <h2>Fitness Goals and Plan</h2>
+        <label for="goal">Fitness Goal:</label>
+        <input type="text" id="goal" placeholder="e.g., Lose 5kg, Build Muscle"><br><br>
+
+        <label for="diet">Dietary Preferences:</label>
+        <textarea id="diet" placeholder="e.g., High protein, Low carb" rows="4"></textarea><br><br>
+
+        <label for="workout">Workout Plan:</label>
+        <textarea id="workout" placeholder="e.g., 3 days weight training, 2 days cardio" rows="4"></textarea><br><br>
+
+        <button onclick="saveGoals()">Save Goals</button>
+        <div class="result" id="goalsResult"></div>
+    </div>
+
+    <!-- Customer Results Section -->
+    <div id="history" class="section">
+        <h2>Customer Results</h2>
+        <canvas id="historyChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let customerResults = {
+            dates: [],
+            bmi: [],
+            idealWeight: [],
+            calories: [],
+            bmr: [],
+            protein: []
+        };
+
+        // Define average or normal values for comparison
+        const normalValues = {
+            bmi: 22, // Example average BMI
+            idealWeight: 70, // Example ideal weight in kg
+            calories: 2000, // Example daily calorie intake
+            bmr: 1500, // Example BMR
+            protein: 70 // Example daily protein requirement in grams
+        };
+
+        function performCalculations() {
+            const name = document.getElementById('name').value;
+            const address = document.getElementById('address').value;
+            const phone = document.getElementById('phone').value;
+            const height = document.getElementById('height').value / 100; // convert cm to meters
+            const weight = document.getElementById('weight').value;
+            const age = document.getElementById('age').value;
+            const activityLevel = document.getElementById('activityLevel').value;
+            const gender = document.getElementById('gender').value;
+            let resultText = '';
+
+            // Calculations
+            const bmi = weight / (height * height);
+            const idealWeight = 22 * (height * height);
+            let bmr;
+            if (gender === 'male') {
+                bmr = 10 * weight + 6.25 * height * 100 - 5 * age + 5;
+            } else {
+                bmr = 10 * weight + 6.25 * height * 100 - 5 * age - 161;
+            }
+            const calories = bmr * activityLevel;
+            const protein = weight * activityLevel;
+
+            // Construct result text
+            resultText = `
+                Name: ${name}<br>
+                Address: ${address}<br>
+                Phone: ${phone}<br>
+                Your BMI is ${bmi.toFixed(2)}<br>
+                Your ideal weight is ${idealWeight.toFixed(2)} kg<br>
+                Your daily caloric needs are ${calories.toFixed(2)} calories<br>
+                Your BMR is ${bmr.toFixed(2)} calories/day<br>
+                You need ${protein.toFixed(2)} grams of protein per day
+            `;
+
+            // Display results
+            document.getElementById('result').innerHTML = resultText;
+
+            // Update history with new results
+            const date = new Date().toLocaleDateString();
+            customerResults.dates.push(date);
+            customerResults.bmi.push(bmi.toFixed(2));
+            customerResults.idealWeight.push(idealWeight.toFixed(2));
+            customerResults.calories.push(calories.toFixed(2));
+            customerResults.bmr.push(bmr.toFixed(2));
+            customerResults.protein.push(protein.toFixed(2));
+
+            // Update the chart
+            updateHistoryChart();
+        }
+
+        function updateHistoryChart() {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: customerResults.dates,
+                    datasets: [
+                        {
+                            label: 'Your BMI',
+                            data: customerResults.bmi,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Normal BMI',
+                            data: Array(customerResults.dates.length).fill(normalValues.bmi),
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Your Ideal Weight',
+                            data: customerResults.idealWeight,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Normal Ideal Weight',
+                            data: Array(customerResults.dates.length).fill(normalValues.idealWeight),
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Your Calories',
+                            data: customerResults.calories,
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Normal Calories',
+                            data: Array(customerResults.dates.length).fill(normalValues.calories),
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Your BMR',
+                            data: customerResults.bmr,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Normal BMR',
+                            data: Array(customerResults.dates.length).fill(normalValues.bmr),
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Your Protein',
+                            data: customerResults.protein,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Normal Protein',
+                            data: Array(customerResults.dates.length).fill(normalValues.protein),
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function printResults() {
+            const resultText = document.getElementById('result').innerHTML;
+            const canvas = document.getElementById('historyChart');
+            const goalsText = document.getElementById('goalsResult').innerHTML;
+            if (resultText && canvas) {
+                const canvasImg = canvas.toDataURL("image/png");
+                const printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write('<html><head><title>Print Results</title>');
+                printWindow.document.write('<style>@media print { .print-header, .print-footer { text-align: center; font-weight: bold; } .print-chart { page-break-after: always; } }</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<div class="print-header">Unified Fitness Calculator Results</div>');
+                printWindow.document.write('<h2>Calculation Results</h2>');
+                printWindow.document.write(resultText);
+                printWindow.document.write('<h2>Customer Results Chart</h2>');
+                printWindow.document.write('<img src="' + canvasImg + '" class="print-chart">');
+                printWindow.document.write('<h2>Fitness Goals and Plan</h2>');
+                printWindow.document.write(goalsText);
+                printWindow.document.write('<div class="print-footer">Thank you for using our tool!</div>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+            } else {
+                alert('Please perform a calculation before printing.');
+            }
+        }
+
+        function saveGoals() {
+            const goal = document.getElementById('goal').value;
+            const diet = document.getElementById('diet').value;
+            const workout = document.getElementById('workout').value;
+
+            const goalsText = `
+                <h3>Fitness Goal:</h3>
+                <p>${goal}</p>
+                <h3>Dietary Preferences:</h3>
+                <p>${diet}</p>
+                <h3>Workout Plan:</h3>
+                <p>${workout}</p>
+            `;
+
+            document.getElementById('goalsResult').innerHTML = goalsText;
+        }
+    </script>
+
+</body>
+</html>
