@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified Fitness Calculator</title>
+    <title>MARIRS Fitness Calculator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;S
+            font-family: Arial, sans-serif;
             padding: 20px;
             max-width: 900px;
             margin: auto;
@@ -30,6 +30,7 @@
             color: black;
         }
         .section {
+            display: none; /* Initially hide all sections */
             background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white */
             padding: 20px;
             margin-bottom: 20px;
@@ -80,15 +81,15 @@
 
     <!-- Navigation -->
     <nav>
-        <a href="#home">Home</a>
-        <a href="#calculator">Calculator</a>
-        <a href="#history">Customer Results</a>
-        <a href="#goals">Fitness Goals</a>
+        <a href="#" onclick="showSection('home')">Home</a>
+        <a href="#" onclick="showSection('calculator')">Calculator</a>
+        <a href="#" onclick="showSection('history')">Customer Results</a>
+        <a href="#" onclick="showSection('goals')">Fitness Goals</a>
     </nav>
 
     <!-- Home Section -->
     <div id="home" class="section">
-        <h2>Welcome to the Unified Fitness Calculator</h2>
+        <h2>Welcome to the MARIRS Fitness Calculator</h2>
         <p>This tool allows you to calculate various fitness metrics such as BMI, Ideal Weight, Daily Calories, BMR, and Protein requirements. You can also track your results over time and visualize them in a graphical representation.</p>
     </div>
 
@@ -334,7 +335,7 @@
                 printWindow.document.write('<html><head><title>Print Results</title>');
                 printWindow.document.write('<style>@media print { .print-header, .print-footer { text-align: center; font-weight: bold; } .print-chart { page-break-after: always; } }</style>');
                 printWindow.document.write('</head><body>');
-                printWindow.document.write('<div class="print-header">Unified Fitness Calculator Results</div>');
+                printWindow.document.write('<div class="print-header">MARIRS Fitness Calculator Results</div>');
                 printWindow.document.write('<h2>Calculation Results</h2>');
                 printWindow.document.write(resultText);
                 printWindow.document.write('<h2>Customer Results Chart</h2>');
@@ -367,6 +368,17 @@
 
             document.getElementById('goalsResult').innerHTML = goalsText;
         }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+            
+            // Show the selected section
+            document.getElementById(sectionId).style.display = 'block';
+        }
+        
+        // Show the home section by default
+        showSection('home');
     </script>
 
 </body>
